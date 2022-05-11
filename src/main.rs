@@ -2,6 +2,9 @@
 // use std::env::args;
 // use std::path::PathBuf;
 use clap::Parser;
+use std::io::{self, BufReader};
+use std::io::prelude::*;
+use std::fs::File;
 
 #[derive(Parser)]
 struct Cli {
@@ -29,14 +32,18 @@ fn main() {
     // ## 1.3 First Implementation
     // 파일을 읽어보자
     // TODO: improve with Nice error reporting
-    let content = std::fs::read_to_string(&args.path)
-        .expect("could not read file"); // quit with message when error, 
+    let f = File::open(&args.path);
+    let f = match f {
+        Ok(file) => BufReader::new(file),
+        Err(err) => {panic!("No such file found.");}
+    };
     
     // 한줄씩 읽는다
-    for line in content.lines() {
-        if line.contains(&args.pattern) {
-            println!("{}", line);
+    for line in f.lines() {
+        // pattern을 포함하는 경우만 출력
+        let l = line.unwrap();
+        if l.contains(&args.pattern) {
+            println!("{}", l);
         }
     }
-
 }
