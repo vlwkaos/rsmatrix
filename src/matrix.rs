@@ -34,7 +34,7 @@ impl<W: Write> Matrix<W> {
   pub fn draw(&self) {
   }
   
-  fn clear(&self) {
+  fn clear(&mut self) {
     write!(self.stdout, "{}", clear::All).unwrap();
   }
 }

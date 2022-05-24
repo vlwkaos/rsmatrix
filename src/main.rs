@@ -1,49 +1,45 @@
 #![allow(unused)]
+mod matrix;
+
+
 // use std::env::args;
 // use std::path::PathBuf;
 use clap::Parser;
-use std::io::{self, BufReader};
-use std::io::prelude::*;
-use std::fs::File;
+use termion::{clear, color, style, terminal_size};
+use std::io::{self, Read, Write};
+use matrix::Matrix;
 
 #[derive(Parser)]
-struct Cli {
-    pattern: String,
-    #[clap(parse(from_os_str))]
-    path: std::path::PathBuf,
+struct Args {
+    pattern: Option<String>,
 }
 
-// #[clap(short = 'o', long = "output")]
-// https://docs.rs/clap/
-
 fn main() {
-    // ## 1.2 Parsing command line arguments
-    // let pattern = args().nth(1).expect("no pattern given"); 
-    // let path = args().nth(2).expect("no path given");
-    // let args = Cli {
-    //     pattern,
-    //     path: PathBuf::from(path),
-    // };
-    let args = Cli::parse();
-    // 실패해도 clap이 자동으로 help 메세지도 만들어줌
-    // parse 메소드는 main에서만 사용할 것
+    let args = Args::parse();
     
+    // 성능을 위해 stdios를 초기에 lock시킨다.
+    let stdout = io::stdout();
+    let mut stdout = stdout.lock();
+    let stdin = io::stdin();
+    let stdin = stdin.lock();
+    let stderr = io::stderr();
+    let mut stderr = stderr.lock();
+    
+    let terminal_size = termion::terminal_size().ok();
+    let width = terminal_size.map(|(w,_)| w).unwrap_or(100);
+    let height = terminal_size.map(|(_,h)| h).unwrap_or(100);
+    
+    let mut matrix = Matrix::new(stdout, width, height);
+   
+    // init(stdout, stdin, width.unwrap_or(100), height.unwrap_or(100));
+    let mut is_running = true;
 
-    // ## 1.3 First Implementation
-    // 파일을 읽어보자
-    // TODO: improve with Nice error reporting
-    let f = File::open(&args.path);
-    let f = match f {
-        Ok(file) => BufReader::new(file),
-        Err(err) => {panic!("No such file found.");}
-    };
+    // while is_running {
+    //     draw(stdout)?;
+    //     stdout.flush()?;
+    //     update();
+    // }
     
-    // 한줄씩 읽는다
-    for line in f.lines() {
-        // pattern을 포함하는 경우만 출력
-        let l = line.unwrap();
-        if l.contains(&args.pattern) {
-            println!("{}", l);
-        }
-    }
+    // stdout.flush().unwrap();
+    // stderr.flush().unwrap();
 }
