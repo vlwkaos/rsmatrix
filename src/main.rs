@@ -10,7 +10,7 @@ use core::time;
 use std::{io::{self, Read, Write}, thread};
 use matrix::Matrix;
 
-const FRAME_DURATION: u64 = 60/1000; // 60 frame per sec
+const FRAME_DURATION: u64 = 200; // 60 frame per sec
 
 #[derive(Parser)]
 struct Args {
@@ -35,20 +35,18 @@ fn main() {
     // We go to raw mode to make the control over the terminal more fine-grained.
     let stdout = stdout.into_raw_mode().unwrap();
     let mut matrix = Matrix::new(stdout, width, height);
-   
+    matrix.randomize();
+
     // init(stdout, stdin, width.unwrap_or(100), height.unwrap_or(100));
-    let mut is_running = true;
+    let mut is_running = 0;
     
-    // while is_running {
+     while is_running < 50 {
         matrix.draw();
         matrix.update();
 
         thread::sleep(time::Duration::from_millis(FRAME_DURATION));
-        matrix.draw();
-        matrix.update();
-
-        thread::sleep(time::Duration::from_millis(FRAME_DURATION));
-    // }
+        is_running += 1;
+    }
     
     // stderr.flush().unwrap();
 }
