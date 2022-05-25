@@ -19,7 +19,7 @@ fn main() {
     
     // 성능을 위해 stdios를 초기에 lock시킨다.
     let stdout = io::stdout();
-    let mut stdout = stdout.lock();
+    let mut stdout = stdout.lock(); // stdout handle
     let stdin = io::stdin();
     let stdin = stdin.lock();
     let stderr = io::stderr();
@@ -33,7 +33,9 @@ fn main() {
    
     // init(stdout, stdin, width.unwrap_or(100), height.unwrap_or(100));
     let mut is_running = true;
-
+    
+    matrix.clear();
+    matrix.draw();
     // while is_running {
     //     draw(stdout)?;
     //     stdout.flush()?;
