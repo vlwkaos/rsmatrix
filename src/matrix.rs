@@ -18,7 +18,7 @@ impl Matrix {
   pub fn new(width: u16, height:u16) -> Matrix {
     
     Matrix {
-      queue: (0..10).map(|_| DataString::new(width, height)).collect(),
+      queue: (0..width/2).map(|_| DataString::new(width, height)).collect(),
       width,
       height
     }

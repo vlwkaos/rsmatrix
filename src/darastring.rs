@@ -118,12 +118,20 @@ impl DataString {
       );
     }
     
-    for i in 1..window_min {
+    // 마지막 두 셀을 삭제
+    // TODO 코드 정리
+    if window_min - 1 >= 1 {
       write!(stdout, "{}{}{}", 
-        cursor::Goto(self.x, i), 
+        cursor::Goto(self.x, window_min-1), 
         color::Black.fg_str(),
         ' ' 
       );
     }
+
+    write!(stdout, "{}{}{}", 
+      cursor::Goto(self.x, window_min), 
+      color::Black.fg_str(),
+      ' ' 
+    );
   } 
 }
