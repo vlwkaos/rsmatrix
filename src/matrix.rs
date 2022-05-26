@@ -2,7 +2,7 @@ use rand::Rng;
 use std::{io::{Write, Stdout, Read, Stdin}};
 use termion::{clear, color::{self, Rgb}, style, terminal_size, cursor, input::Keys};
 
-use crate::darastring::DataString;
+use crate::datastring::DataString;
 
 // change queue를 만들어서 cursor로 움직여서...
 

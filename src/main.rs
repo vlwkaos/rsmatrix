@@ -1,6 +1,6 @@
 #![allow(unused)]
 mod matrix;
-mod darastring;
+mod datastring;
 
 
 // use std::env::args;
