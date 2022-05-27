@@ -1,7 +1,5 @@
 #![allow(unused)]
-mod matrix;
-mod datastring;
-
+mod libs;
 
 // use std::env::args;
 // use std::path::PathBuf;
@@ -9,7 +7,7 @@ use clap::Parser;
 use termion::{clear, color, style, terminal_size, raw::IntoRawMode, cursor, input::TermRead, event::Key};
 use core::time;
 use std::{io::{self, Read, Write}, thread};
-use matrix::Matrix;
+use libs::matrix::Matrix;
 
 const FRAME_DURATION: u64 = 100; // 
 
