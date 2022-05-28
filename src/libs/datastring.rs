@@ -1,6 +1,7 @@
 use rand::{Rng, distributions::uniform::SampleRange};
 use std::{io::{Write, Stdout}, ops::Range, cmp::min};
 use termion::{clear, color::{self, Rgb}, style, terminal_size, cursor};
+use super::drawable::Drawable;
 
 const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
                             abcdefghijklmnopqrstuvwxyz\
@@ -29,24 +30,6 @@ struct Datum {
   color: color::Rgb
 }
 
-impl Datum {
-  fn set_black(&mut self) {
-    self.color = color::Rgb(0,0,0);
-  }
-
-  fn set_lead_color(&mut self) {
-    // 흰색으로 표기
-    self.color = color::Rgb(230,230,230);
-  }
-  
-  fn darken(&mut self) {
-    let Rgb(r,g,b) = self.color;
-    let darkness_factor = 0.5;
-    // self.color = color::Rgb(r * darkness_factor, g * darkness_factor, b * darkness_factor);
-  }
-  
-}
-
 #[derive(Debug, Clone)]
 pub struct DataString {
   data: Box<[Datum]>,
@@ -54,7 +37,9 @@ pub struct DataString {
   pub x: u16,
   y_head: u16,
   matrix_width: u16,
-  matrix_height: u16
+  matrix_height: u16,
+  update_frequency: u16,
+
 }
 
 impl DataString {
@@ -68,13 +53,13 @@ impl DataString {
       x: get_random_number(1..width),
       y_head: get_random_number(1..height-20),
       matrix_width: width,
-      matrix_height: height
+      matrix_height: height,
+      update_frequency: get_random_number(1..10)
     }
   }
 }
 
 impl DataString {
-  
   fn reset(&mut self) {
     self.data = (0..self.matrix_height).map(|_| Datum {
       character: get_random_char(),
@@ -84,9 +69,19 @@ impl DataString {
     self.x = get_random_number(1..self.matrix_width);
     self.y_head = 0;
   }
+  
+  fn move_down(&mut self) {
+    self.y_head += 1;
+    self.y_head = min(self.y_head, self.matrix_height);
+    if self.y_head == self.matrix_height {
+      self.visible_length -= 1;
+    }
+  }
+}
+  
+impl Drawable for DataString {
 
-
-  pub fn update(&mut self) {
+  fn update(&mut self, frame_count: u16) {
     // 화면 밖임
     if let Some(res) = self.y_head.checked_sub(self.visible_length) {
       if res == self.matrix_height {
@@ -94,17 +89,12 @@ impl DataString {
       }
     };
     // 아래로 이동
-    self.y_head += 1;
-    self.y_head = min(self.y_head, self.matrix_height);
-    if self.y_head == self.matrix_height {
-      self.visible_length -= 1;
+    if frame_count % self.update_frequency == 0 {
+      self.move_down();
     }
-
   }
 
-  // TODO: 겹치는 경우
-  // TODO: interval다르게 draw
-  pub fn draw<W: Write>(&self, stdout: &mut W) {
+  fn draw<W: Write>(&self, stdout: &mut W) {
 
     let window_min = match self.y_head.checked_sub(self.visible_length) {
       Some(min) => min+1,

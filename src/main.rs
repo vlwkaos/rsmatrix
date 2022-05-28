@@ -8,8 +8,10 @@ use termion::{clear, color, style, terminal_size, raw::IntoRawMode, cursor, inpu
 use core::time;
 use std::{io::{self, Read, Write}, thread};
 use libs::matrix::Matrix;
+use libs::drawable::Drawable;
 
-const FRAME_DURATION: u64 = 100; // 
+const FRAME: u16 = 60;
+const FRAME_DURATION: u16 = 1000/FRAME; // 60fps
 
 #[derive(Parser)]
 struct Args {
@@ -36,6 +38,7 @@ fn main() {
     let height = terminal_size.map(|(_,h)| h).unwrap_or(100);
     let mut matrix = Matrix::new(width, height);
 
+    let mut frame_count: u16 = 0;
     write!(stdout, "{}{}", cursor::Hide, clear::All);
     loop {
         let b = it.next();
@@ -45,10 +48,15 @@ fn main() {
                 _ => {}
             }     
         }
-        matrix.update();
+        matrix.update(frame_count);
         matrix.draw(&mut stdout);
         // stdout.flush();
-        thread::sleep(time::Duration::from_millis(FRAME_DURATION));
+        // increment frame_count and reset if overflow
+        frame_count += 1;
+        if frame_count > FRAME * 10 {
+            frame_count = 0;
+        }
+        thread::sleep(time::Duration::from_millis(FRAME_DURATION as u64));
     }
     
     // stderr.flush().unwrap();
