@@ -1,7 +1,10 @@
 [package]
 name = "rsmatrix"
 version = "0.1.0"
+authors = ["vlwkaos", "https://github.com/vlwkaos"] 
+repository = "https://github.com/vlwkaos/rsmatrix"
 edition = "2021"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
