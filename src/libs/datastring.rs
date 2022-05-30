@@ -1,28 +1,8 @@
 use rand::{Rng, distributions::uniform::SampleRange};
 use std::{io::{Write, Stdout}, ops::Range, cmp::min};
 use termion::{clear, color::{self, Rgb}, style, terminal_size, cursor};
-use super::drawable::Drawable;
-
-const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
-                            abcdefghijklmnopqrstuvwxyz\
-                            0123456789)(*&^%$#@!~";
-
-fn get_random_char() -> char {
-  let mut rng = rand::thread_rng();
-  let idx = rng.gen_range(0..CHARSET.len());
-  CHARSET[idx] as char
-}
-
-fn get_random_color() -> color::Rgb {
-  let mut rng = rand::thread_rng();
-  let (r,g,b) = (rng.gen_range(0..=255), rng.gen_range(0..=255),rng.gen_range(0..=255));
-  color::Rgb(r,g,b)
-}
-
-fn get_random_number(range: Range<u16>) -> u16 {
-  let mut rng = rand::thread_rng();
-  rng.gen_range(range)
-}
+use super::{drawable::Drawable, charset::Charset};
+use super::utils::*;
 
 #[derive(Debug, Clone)]
 struct Datum {
@@ -34,19 +14,19 @@ struct Datum {
 pub struct DataString {
   data: Box<[Datum]>,
   visible_length: u16,
-  pub x: u16,
+  x: u16,
   y_head: u16,
   matrix_width: u16,
   matrix_height: u16,
   update_frequency: u16,
-
+  charset: Charset,
 }
 
 impl DataString {
-  pub fn new(width: u16, height: u16) -> DataString {
+  pub fn new(width: u16, height: u16, charset: Charset) -> DataString {
     DataString { 
       data: (0..height).map(|_| Datum {
-      character: get_random_char(),
+      character: charset.get_random_char(),
       color: get_random_color()
       }).collect(), 
       visible_length: get_random_number(8..20), 
@@ -54,7 +34,8 @@ impl DataString {
       y_head: get_random_number(1..height-20),
       matrix_width: width,
       matrix_height: height,
-      update_frequency: get_random_number(1..10)
+      update_frequency: get_random_number(1..10),
+      charset,
     }
   }
 }
@@ -62,7 +43,7 @@ impl DataString {
 impl DataString {
   fn reset(&mut self) {
     self.data = (0..self.matrix_height).map(|_| Datum {
-      character: get_random_char(),
+      character: self.charset.get_random_char(),
       color: get_random_color()
       }).collect();
     self.visible_length = get_random_number(8..20);
