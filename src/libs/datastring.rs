@@ -11,7 +11,7 @@ struct Datum {
 }
 
 #[derive(Debug, Clone)]
-pub struct DataString {
+pub struct DataString<'a> {
   data: Box<[Datum]>,
   visible_length: u16,
   x: u16,
@@ -20,14 +20,16 @@ pub struct DataString {
   matrix_height: u16,
   update_frequency: u16,
   charset: Charset,
+  color: &'a str
 }
 
-impl DataString {
-  pub fn new(width: u16, height: u16, charset: Charset) -> DataString {
+impl DataString<'_> {
+  pub fn new(width: u16, height: u16, charset: Charset, color: &str) -> DataString {
+
     DataString { 
       data: (0..height).map(|_| Datum {
       character: charset.get_random_char(),
-      color: get_random_color()
+      color: get_color_from_string(color)
       }).collect(), 
       visible_length: get_random_number(8..20), 
       x: get_random_number(1..width),
@@ -36,15 +38,16 @@ impl DataString {
       matrix_height: height,
       update_frequency: get_random_number(1..10),
       charset,
+      color
     }
   }
 }
 
-impl DataString {
+impl DataString<'_> {
   fn reset(&mut self) {
     self.data = (0..self.matrix_height).map(|_| Datum {
       character: self.charset.get_random_char(),
-      color: get_random_color()
+      color: get_color_from_string(self.color)
       }).collect();
     self.visible_length = get_random_number(8..20);
     self.x = get_random_number(1..self.matrix_width);
@@ -60,7 +63,7 @@ impl DataString {
   }
 }
   
-impl Drawable for DataString {
+impl Drawable for DataString<'_> {
 
   fn update(&mut self, frame_count: u16) {
     // 화면 밖임

@@ -8,21 +8,22 @@ use super::datastring::DataString;
 // change queue를 만들어서 cursor로 움직여서...
 
 #[derive(Debug)]
-pub struct Matrix {
-  queue: Box<[DataString]>,
+pub struct Matrix<'a> {
+  queue: Box<[DataString<'a>]>,
   // stdin: R,
   width: u16,
   height: u16,
 }
 
-impl Matrix {
-  pub fn new(width: u16, height:u16) -> Matrix {
+impl Matrix<'_> {
+  pub fn new(width: u16, height:u16, color: &str) -> Matrix {
     
     Matrix {
       queue: (0..width/2).map(|_| DataString::new(
         width, 
         height,
-        super::charset::Charset::Katakana
+        super::charset::Charset::Katakana,
+        color
       )).collect(),
       width,
       height
@@ -30,7 +31,7 @@ impl Matrix {
   }
 }
 
-impl Drawable for Matrix {
+impl Drawable for Matrix<'_> {
   
   // reveal what was there
   // darken after a certain length
