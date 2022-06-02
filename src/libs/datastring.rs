@@ -56,9 +56,14 @@ impl DataString<'_> {
   
   fn move_down(&mut self) {
     self.y_head += 1;
-    self.y_head = min(self.y_head, self.matrix_height);
-    if self.y_head == self.matrix_height {
-      self.visible_length -= 1;
+  }
+  
+  fn get_y_tail(&self) -> Option<u16> {
+    match self.y_head.checked_sub(self.visible_length) {
+      Some(min) => {
+          Some(min+1)
+      },
+      None => None
     }
   }
 }
@@ -67,8 +72,8 @@ impl Drawable for DataString<'_> {
 
   fn update(&mut self, frame_count: u16) {
     // 화면 밖임
-    if let Some(res) = self.y_head.checked_sub(self.visible_length) {
-      if res == self.matrix_height {
+    if let Some(y) = self.get_y_tail() {
+      if y > self.matrix_height {
         self.reset();
       }
     };
@@ -80,32 +85,35 @@ impl Drawable for DataString<'_> {
 
   fn draw<W: Write>(&self, stdout: &mut W) {
 
-    let window_min = match self.y_head.checked_sub(self.visible_length) {
-      Some(min) => min+1,
-      None => 1
-    };
-    for i in window_min..self.y_head {
+    // to end 
+    if let Some(y_tail) = self.get_y_tail() {
+      for i in y_tail..=self.y_head {
+        if i <= self.matrix_height {
+          write!(stdout, "{}{}{}", 
+            cursor::Goto(self.x, i), 
+            self.data[(i-1) as usize].color.fg_string(),
+            self.data[(i-1) as usize].character
+          );
+        }
+      }
+      
+      // erase tail
       write!(stdout, "{}{}{}", 
-        cursor::Goto(self.x, i), 
-        self.data[i as usize-1].color.fg_string(),
-        self.data[i as usize-1].character
-      );
-    }
-    
-    // 마지막 두 셀을 삭제
-    // TODO 코드 정리
-    if window_min - 1 >= 1 {
-      write!(stdout, "{}{}{}", 
-        cursor::Goto(self.x, window_min-1), 
+        cursor::Goto(self.x, y_tail-1), 
         color::Black.fg_str(),
         ' ' 
       );
-    }
+    } else {
+      // start
+      for i in 1..=self.y_head {
+        write!(stdout, "{}{}{}", 
+          cursor::Goto(self.x, i), 
+          self.data[(i-1) as usize].color.fg_string(),
+          self.data[(i-1) as usize].character
+        );
+      }
+      
+    };
 
-    write!(stdout, "{}{}{}", 
-      cursor::Goto(self.x, window_min), 
-      color::Black.fg_str(),
-      ' ' 
-    );
   } 
 }
