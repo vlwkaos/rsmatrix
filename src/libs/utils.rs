@@ -13,7 +13,7 @@ pub fn get_color_from_string(string: &str) -> color::Rgb {
     "magenta" => color::Rgb(255,0,255),
     "cyan" => color::Rgb(0,255,255),
     "random" => get_random_color(),
-    _ => color::Rgb(0, 255, 0)
+    string_tuple => string_tuple_to_rgb(string_tuple) 
   }
 }
 
@@ -27,4 +27,19 @@ pub fn get_random_color() -> color::Rgb {
 pub fn get_random_number(range: Range<u16>) -> u16 {
   let mut rng = rand::thread_rng();
   rng.gen_range(range)
+}
+
+pub fn string_tuple_to_rgb(string_tuple: &str) -> color::Rgb {
+  let mut rgb_vec = Vec::new();
+  for i in string_tuple.split(',') {
+    rgb_vec.push(
+      i.parse::<u8>()
+      .expect("Please enter correct color: r,g,b or green.")
+    );
+  }
+  
+  let r = rgb_vec[0];
+  let g = rgb_vec[1];
+  let b = rgb_vec[2];
+  color::Rgb(r,g,b)
 }
