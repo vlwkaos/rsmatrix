@@ -32,7 +32,7 @@ impl DataString<'_> {
       color: get_color_from_string(color)
       }).collect(), 
       visible_length: get_random_number(8..20), 
-      x: get_random_number(1..width),
+      x: get_random_number(1..(width / charset.get_width())),
       y_head: get_random_number(1..height-20),
       matrix_width: width,
       matrix_height: height,
@@ -50,7 +50,7 @@ impl DataString<'_> {
       color: get_color_from_string(self.color)
       }).collect();
     self.visible_length = get_random_number(8..20);
-    self.x = get_random_number(1..self.matrix_width);
+    self.x = get_random_number(1..(self.matrix_width / self.charset.get_width()));
     self.y_head = 0;
   }
   
@@ -66,6 +66,7 @@ impl DataString<'_> {
       None => None
     }
   }
+  
 }
   
 impl Drawable for DataString<'_> {
@@ -90,16 +91,15 @@ impl Drawable for DataString<'_> {
       for i in y_tail..=self.y_head {
         if i <= self.matrix_height {
           write!(stdout, "{}{}{}", 
-            cursor::Goto(self.x, i), 
+          cursor::Goto(self.x * self.charset.get_width(), i), 
             self.data[(i-1) as usize].color.fg_string(),
             self.data[(i-1) as usize].character
           );
         }
       }
-      
       // erase tail
       write!(stdout, "{}{}{}", 
-        cursor::Goto(self.x, y_tail-1), 
+        cursor::Goto(self.x * self.charset.get_width(), y_tail-1), 
         color::Black.fg_str(),
         ' ' 
       );
@@ -107,7 +107,7 @@ impl Drawable for DataString<'_> {
       // start
       for i in 1..=self.y_head {
         write!(stdout, "{}{}{}", 
-          cursor::Goto(self.x, i), 
+          cursor::Goto(self.x * self.charset.get_width(), i), 
           self.data[(i-1) as usize].color.fg_string(),
           self.data[(i-1) as usize].character
         );

@@ -1,11 +1,17 @@
 use std::ops::{Range, RangeInclusive};
 use rand::Rng;
 
+pub enum CharWidth {
+  Half = 1,
+  Full = 2
+}
+
 #[derive(Debug, Clone)]
 pub enum Charset {
   AlphaLowercase,
   AlphaUppercase,
   NumSym, 
+  AlphaNumSym,
   Katakana, // japanese
   Emoji
 }
@@ -17,6 +23,9 @@ impl Charset {
       Charset::AlphaLowercase => ['\u{0061}'..='\u{007A}'].into(),
       Charset::AlphaUppercase => ['\u{0041}'..='\u{005A}'].into(),
       Charset::NumSym => ['\u{0021}'..='\u{0040}'].into(),
+      Charset::AlphaNumSym => ['\u{0061}'..='\u{007A}',
+                         '\u{0041}'..='\u{005A}',
+                         '\u{0021}'..='\u{0040}'].into(),
       Charset::Katakana => ['\u{30A0}'..='\u{30FF}'].into(), 
       Charset::Emoji => ['\u{1F000}'..='\u{1F02F}', 
                          '\u{1F0A0}'..='\u{1F0FF}', 
@@ -24,6 +33,18 @@ impl Charset {
                          '\u{1F910}'..='\u{1F96B}', 
                          '\u{1F980}'..='\u{1F9E0}'].into(),
     }
+  }
+
+  pub fn get_width(&self) -> u16 {
+    let char_width = match *self {
+      Charset::AlphaLowercase => CharWidth::Half,
+      Charset::AlphaUppercase => CharWidth::Half,
+      Charset::NumSym => CharWidth::Half,
+      Charset::AlphaNumSym => CharWidth::Half,
+      Charset::Katakana => CharWidth::Full, 
+      Charset::Emoji => CharWidth::Full 
+    };
+    char_width as u16
   }
 
   pub fn get_random_char(&self) -> char {
