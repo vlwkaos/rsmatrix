@@ -41,7 +41,8 @@ struct Arguments {
 pub fn parse_cli_arguments() -> Settings {
   let arguments: Arguments = Arguments::parse();
   // curryied color func
-  let color = Box::new(move || {get_color_from_string(arguments.tail.as_str())});
+  let tail_color = Box::new(move || {get_color_from_string(arguments.tail.as_str())});
+  let head_color = Box::new(move || {get_color_from_string(arguments.head.as_str())});
   let charset = match arguments.charset.as_str() {
     "aascii" => Charset::AlphaNumSym,
     "katakana" => Charset::Katakana,
@@ -49,14 +50,16 @@ pub fn parse_cli_arguments() -> Settings {
   };
   
   Settings {
-    color,
+    tail_color,
+    head_color,
     charset
   }
 }
 
 pub struct Settings {
   // https://users.rust-lang.org/t/storing-a-function-taking-a-function-in-a-struct/14434
-  pub color: Box<dyn Fn() -> color::Rgb>,
+  pub tail_color: Box<dyn Fn() -> color::Rgb>,
+  pub head_color: Box<dyn Fn() -> color::Rgb>,
   pub charset: Charset
   
 }

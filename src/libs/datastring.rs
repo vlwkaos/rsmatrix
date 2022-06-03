@@ -30,14 +30,14 @@ impl DataString<'_> {
     DataString { 
       data: (0..height).map(|_| Datum {
       character: settings.charset.get_random_char(),
-      color: (settings.color)() 
+      color: (settings.tail_color)() 
       }).collect(), 
       visible_length: get_random_number(height/4..height/2), 
       x,
       y_head: get_random_number(1..height),
       matrix_width: width,
       matrix_height: height,
-      update_frequency: get_random_number(1..4),
+      update_frequency: get_random_number(2..6),
       settings
     }
   }
@@ -47,7 +47,7 @@ impl DataString<'_> {
   fn reset(&mut self) {
     self.data = (0..self.matrix_height).map(|_| Datum {
       character: self.settings.charset.get_random_char(),
-      color: (self.settings.color)() 
+      color: (self.settings.tail_color)() 
       }).collect();
     self.visible_length = get_random_number(self.matrix_height/4..self.matrix_height/2);
     self.y_head = 0;
@@ -85,33 +85,35 @@ impl Drawable for DataString<'_> {
 
   fn draw<W: Write>(&self, stdout: &mut W) {
 
-    // to end 
-    if let Some(y_tail) = self.get_y_tail() {
-      for i in y_tail..=self.y_head {
-        if i <= self.matrix_height {
-          write!(stdout, "{}{}{}", 
-          cursor::Goto(self.x * self.settings.charset.get_width(), i), 
-            self.data[(i-1) as usize].color.fg_string(),
-            self.data[(i-1) as usize].character
-          );
-        }
+    // draw string
+    if 1 <= self.y_head && self.y_head <= self.matrix_height+1 {
+      // head
+      if self.y_head <= self.matrix_height {
+        write!(stdout, "{}{}{}", 
+        cursor::Goto(self.x * self.settings.charset.get_width(), self.y_head), 
+          (self.settings.head_color)().fg_string(),
+          self.data[(self.y_head-1) as usize].character
+        );
       }
-      // erase tail
+
+      // neck
+      let neck = self.y_head - 1;
+      if 1 <= neck {
+        write!(stdout, "{}{}{}", 
+        cursor::Goto(self.x * self.settings.charset.get_width(), neck), 
+          self.data[(neck-1) as usize].color.fg_string(),
+          self.data[(neck-1) as usize].character
+        );
+      }
+    }
+
+    // erase tail
+    if let Some(y_tail) = self.get_y_tail() {
       write!(stdout, "{}{}{}", 
         cursor::Goto(self.x * self.settings.charset.get_width(), y_tail-1), 
         color::Black.fg_str(),
         ' ' 
       );
-    } else {
-      // start
-      for i in 1..=self.y_head {
-        write!(stdout, "{}{}{}", 
-          cursor::Goto(self.x * self.settings.charset.get_width(), i), 
-          self.data[(i-1) as usize].color.fg_string(),
-          self.data[(i-1) as usize].character
-        );
-      }
-      
-    };
+    }  
   } 
 }
