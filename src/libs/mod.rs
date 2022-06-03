@@ -1,5 +1,5 @@
 pub mod drawable;
 pub mod matrix;
 pub mod datastring;
-mod charset;
+pub mod charset;
 mod utils;

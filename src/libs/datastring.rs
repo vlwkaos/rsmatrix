@@ -1,16 +1,18 @@
 use rand::{Rng, distributions::uniform::SampleRange};
 use std::{io::{Write, Stdout}, ops::Range, cmp::min};
 use termion::{clear, color::{self, Rgb}, style, terminal_size, cursor};
+use crate::arguments::Settings;
+
 use super::{drawable::Drawable, charset::Charset};
 use super::utils::*;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 struct Datum {
   character: char,
   color: color::Rgb
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct DataString<'a> {
   data: Box<[Datum]>,
   visible_length: u16,
@@ -19,26 +21,24 @@ pub struct DataString<'a> {
   matrix_width: u16,
   matrix_height: u16,
   update_frequency: u16,
-  charset: Charset,
-  color: &'a str
+  settings: &'a Settings
 }
 
 impl DataString<'_> {
-  pub fn new(width: u16, height: u16, charset: Charset, color: &str) -> DataString {
+  pub fn new(x:u16, width: u16, height: u16, settings: &Settings) -> DataString {
 
     DataString { 
       data: (0..height).map(|_| Datum {
-      character: charset.get_random_char(),
-      color: get_color_from_string(color)
+      character: settings.charset.get_random_char(),
+      color: (settings.color)() 
       }).collect(), 
-      visible_length: get_random_number(8..20), 
-      x: get_random_number(1..(width / charset.get_width())),
-      y_head: get_random_number(1..height-20),
+      visible_length: get_random_number(height/4..height/2), 
+      x,
+      y_head: get_random_number(1..height),
       matrix_width: width,
       matrix_height: height,
-      update_frequency: get_random_number(1..10),
-      charset,
-      color
+      update_frequency: get_random_number(1..4),
+      settings
     }
   }
 }
@@ -46,11 +46,10 @@ impl DataString<'_> {
 impl DataString<'_> {
   fn reset(&mut self) {
     self.data = (0..self.matrix_height).map(|_| Datum {
-      character: self.charset.get_random_char(),
-      color: get_color_from_string(self.color)
+      character: self.settings.charset.get_random_char(),
+      color: (self.settings.color)() 
       }).collect();
-    self.visible_length = get_random_number(8..20);
-    self.x = get_random_number(1..(self.matrix_width / self.charset.get_width()));
+    self.visible_length = get_random_number(self.matrix_height/4..self.matrix_height/2);
     self.y_head = 0;
   }
   
@@ -91,7 +90,7 @@ impl Drawable for DataString<'_> {
       for i in y_tail..=self.y_head {
         if i <= self.matrix_height {
           write!(stdout, "{}{}{}", 
-          cursor::Goto(self.x * self.charset.get_width(), i), 
+          cursor::Goto(self.x * self.settings.charset.get_width(), i), 
             self.data[(i-1) as usize].color.fg_string(),
             self.data[(i-1) as usize].character
           );
@@ -99,7 +98,7 @@ impl Drawable for DataString<'_> {
       }
       // erase tail
       write!(stdout, "{}{}{}", 
-        cursor::Goto(self.x * self.charset.get_width(), y_tail-1), 
+        cursor::Goto(self.x * self.settings.charset.get_width(), y_tail-1), 
         color::Black.fg_str(),
         ' ' 
       );
@@ -107,13 +106,12 @@ impl Drawable for DataString<'_> {
       // start
       for i in 1..=self.y_head {
         write!(stdout, "{}{}{}", 
-          cursor::Goto(self.x * self.charset.get_width(), i), 
+          cursor::Goto(self.x * self.settings.charset.get_width(), i), 
           self.data[(i-1) as usize].color.fg_string(),
           self.data[(i-1) as usize].character
         );
       }
       
     };
-
   } 
 }

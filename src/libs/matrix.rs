@@ -2,12 +2,13 @@ use rand::Rng;
 use std::{io::{Write, Stdout, Read, Stdin}};
 use termion::{clear, color::{self, Rgb}, style, terminal_size, cursor, input::Keys};
 
-use super::drawable::Drawable;
+use crate::arguments::Settings;
+
+use super::{drawable::Drawable, charset::Charset};
 use super::datastring::DataString;
 
 // change queue를 만들어서 cursor로 움직여서...
 
-#[derive(Debug)]
 pub struct Matrix<'a> {
   queue: Box<[DataString<'a>]>,
   // stdin: R,
@@ -16,14 +17,14 @@ pub struct Matrix<'a> {
 }
 
 impl Matrix<'_> {
-  pub fn new(width: u16, height:u16, color: &str) -> Matrix {
+  pub fn new(width: u16, height:u16, settings: &Settings) -> Matrix {
     
     Matrix {
-      queue: (0..width/2).map(|_| DataString::new(
+      queue: (1..=width/settings.charset.get_width()).map(|i| DataString::new(
+        i, 
         width, 
         height,
-        super::charset::Charset::Katakana,
-        color
+        settings
       )).collect(),
       width,
       height

@@ -34,7 +34,7 @@ fn main() {
     let terminal_size = termion::terminal_size().ok();
     let width = terminal_size.map(|(w,_)| w).unwrap_or(100);
     let height = terminal_size.map(|(_,h)| h).unwrap_or(100);
-    let mut matrix = Matrix::new(width, height, settings.color.as_str());
+    let mut matrix = Matrix::new(width, height, &settings);
 
     // start drawing
     let mut frame_count: u16 = 0;
