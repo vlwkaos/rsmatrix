@@ -12,10 +12,6 @@ use libs::drawable::Drawable;
 
 use arguments::parse_cli_arguments;
 
-
-const FRAME: u16 = 60;
-const FRAME_DURATION: u16 = 1000/FRAME; // 60fps
-
 fn main() {
     // read cli arguments
     let settings = parse_cli_arguments();
@@ -37,6 +33,8 @@ fn main() {
     let mut matrix = Matrix::new(width, height, &settings);
 
     // start drawing
+    let frames_per_second: u16 = settings.frames;
+    let frame_duration: u16 = 1000/frames_per_second;
     let mut frame_count: u16 = 0;
     write!(stdout, "{}{}", cursor::Hide, clear::All);
     loop {
@@ -55,12 +53,12 @@ fn main() {
         // stdout.flush();
         // increment frame_count and reset if overflow
         frame_count += 1;
-        if frame_count > FRAME * 10 {
+        if frame_count > frames_per_second * 10 {
             frame_count = 0;
         }
         
         // update interval
-        thread::sleep(time::Duration::from_millis(FRAME_DURATION as u64));
+        thread::sleep(time::Duration::from_millis(frame_duration as u64));
     }
     
     // stderr.flush().unwrap();
