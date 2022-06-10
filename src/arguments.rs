@@ -73,7 +73,7 @@ struct Arguments {
     /// Set characters bold (random still sets head to bold)
     ///
     /// OPTIONS:
-    ///   true ,
+    ///   true,
     ///   false,
     ///   random,
     #[clap(short, long, default_value_t = String::from("random"))]
