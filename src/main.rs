@@ -6,7 +6,7 @@ mod arguments;
 // use std::path::PathBuf;
 use termion::{clear, color, style, terminal_size, raw::IntoRawMode, cursor, input::TermRead, event::Key};
 use core::time;
-use std::{io::{self, Read, Write}, thread};
+use std::{io::{self, Read, Write}, thread, time::{Instant, Duration}};
 use libs::matrix::Matrix;
 use libs::drawable::Drawable;
 
@@ -38,10 +38,11 @@ fn main() {
 
     // start drawing
     let frames_per_second: u16 = settings.frames;
-    let frame_duration: u16 = 1000/frames_per_second;
+    let mili_per_frame: u16 = 1000/frames_per_second;
     let mut frame_count: u16 = 0;
     write!(stdout, "{}{}", cursor::Hide, clear::All);
     loop {
+        let now = Instant::now();
         // user input while running
         let b = it.next();
         if let Some(event) = b {
@@ -54,16 +55,23 @@ fn main() {
         // update and draw
         matrix.update(frame_count);
         matrix.draw(&mut stdout);
-        // stdout.flush();
+        
+        let elasped_mili = now.elapsed().as_millis();
+
         // increment frame_count and reset if overflow
         frame_count += 1;
         if frame_count > frames_per_second * 10 {
             frame_count = 0;
             stdout.flush();
         }
-        
-        // update interval
-        thread::sleep(time::Duration::from_millis(frame_duration as u64));
+
+        // wait
+        match mili_per_frame.checked_sub(elasped_mili as u16) {
+            Some(dif) => {
+                thread::sleep(time::Duration::from_millis(dif as u64));
+            },
+            None => {}
+        };
     }
     
     // stderr.flush().unwrap();
