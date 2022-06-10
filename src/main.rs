@@ -26,10 +26,14 @@ fn main() {
     let mut stdin = termion::async_stdin();
     let mut it = stdin.keys();
     
-    // initialize matrix
     let terminal_size = termion::terminal_size().ok();
     let width = terminal_size.map(|(w,_)| w).unwrap_or(100);
     let height = terminal_size.map(|(_,h)| h).unwrap_or(100);
+
+    // set buffer size
+    let mut stdout = io::BufWriter::with_capacity(width as usize * height as usize * 2, stdout);
+        
+    // initialize matrix
     let mut matrix = Matrix::new(width, height, &settings);
 
     // start drawing
@@ -55,6 +59,7 @@ fn main() {
         frame_count += 1;
         if frame_count > frames_per_second * 10 {
             frame_count = 0;
+            stdout.flush();
         }
         
         // update interval

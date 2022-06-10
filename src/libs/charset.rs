@@ -35,16 +35,15 @@ impl Charset {
     }
   }
 
-  pub fn get_width(&self) -> u16 {
-    let char_width = match *self {
+  pub fn get_width(&self) -> CharWidth {
+    match *self {
       Charset::AlphaLowercase => CharWidth::Half,
       Charset::AlphaUppercase => CharWidth::Half,
       Charset::NumSym => CharWidth::Half,
       Charset::AlphaNumSym => CharWidth::Half,
       Charset::Katakana => CharWidth::Full, 
       Charset::Emoji => CharWidth::Full 
-    };
-    char_width as u16
+     }
   }
 
   pub fn get_random_char(&self) -> char {
@@ -55,4 +54,14 @@ impl Charset {
     // cloning is cheap for range. just use it
     rng.gen_range(charset[idx].clone())
   }
+}
+
+
+impl From<CharWidth> for u16 {
+    fn from(char_width: CharWidth) -> Self {
+        match char_width {
+          CharWidth::Half => 1 as u16,
+          CharWidth::Full => 2 as u16,
+        }
+    }
 }

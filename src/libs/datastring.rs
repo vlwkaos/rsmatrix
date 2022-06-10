@@ -57,7 +57,7 @@ impl DataString<'_> {
             y_head: get_random_number(1..height),
             matrix_width: width,
             matrix_height: height,
-            update_frequency: get_random_number(2..5),
+            update_frequency: get_random_number(4..8),
             settings,
         }
     }
@@ -96,7 +96,7 @@ impl DataString<'_> {
         write!(
             stdout,
             "{}{}{}{}{}",
-            cursor::Goto(self.x * self.settings.charset.get_width(), self.y_head),
+            cursor::Goto(self.x * u16::from(self.settings.charset.get_width()), self.y_head),
             (self.settings.get_head_color)().fg_string(),
             bold,
             self.data[(self.y_head - 1) as usize].character,
@@ -109,7 +109,7 @@ impl DataString<'_> {
         write!(
             stdout,
             "{}{}{}{}{}",
-            cursor::Goto(self.x * self.settings.charset.get_width(), neck),
+            cursor::Goto(self.x * u16::from(self.settings.charset.get_width()), neck),
             self.data[(neck - 1) as usize].color.fg_string(),
             self.data[(neck - 1) as usize].get_bold(),
             self.data[(neck - 1) as usize].character,
@@ -122,7 +122,7 @@ impl DataString<'_> {
             write!(
                 stdout,
                 "{}{}{}",
-                cursor::Goto(self.x * self.settings.charset.get_width(), y_tail - 1),
+                cursor::Goto(self.x * u16::from(self.settings.charset.get_width()), y_tail - 1),
                 color::Black.fg_str(),
                 ' '
             );
