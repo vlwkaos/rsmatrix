@@ -58,6 +58,18 @@ struct Arguments {
     pub tail: String,
 
     /// Set color of a head character
+    ///
+    /// OPTIONS:
+    ///   white,
+    ///   red,
+    ///   blue,
+    ///   green,
+    ///   magenta,
+    ///   cyan,
+    ///   yellow,
+    ///   random,
+    ///   rainbow,
+    ///   r,g,b
     #[clap(short, long, default_value_t = String::from("white"))]
     pub head: String,
 
@@ -92,6 +104,7 @@ pub fn parse_cli_arguments() -> Settings {
     let charset = match arguments.charset.as_str() {
         "aascii" => Charset::AlphaNumSym,
         "katakana" => Charset::Katakana,
+        "emoji" => Charset::Emoji,
         _ => Charset::AlphaNumSym,
     };
 
