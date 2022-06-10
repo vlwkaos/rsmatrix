@@ -7,6 +7,7 @@ use rand::Rng;
 use std::ops::Range;
 use termion::color;
 
+#[derive(Clone, Copy)]
 pub enum Trilean {
     True,
     False,

@@ -18,16 +18,45 @@ use super::{charset::Charset, drawable::Drawable};
 struct Datum {
     character: char,
     color: color::Rgb,
-    bold: bool,
+    head: color::Rgb,
+    bold: Trilean,
 }
 
 impl Datum {
-    fn get_bold(&self) -> String {
-        match self.bold {
+    
+    fn get_bold(&self, is_head: bool) -> String {
+        let bold;
+        if is_head {
+            bold = self.bold.get_optimistic_bool();
+        } else {
+            bold = self.bold.get_bool();
+        }
+        match bold {
             true => style::Bold.to_string(),
             false => style::NoBold.to_string(),
         }
     }
+    
+    fn get_color(&self, is_head: bool) -> String {
+        if is_head {
+            self.head.fg_string()
+        } else {
+            self.color.fg_string()
+        }
+    }
+
+    fn draw<W: Write>(&self, stdout: &mut W, is_head: bool) {
+
+        write!(
+            stdout,
+            "{}{}{}{}",
+            self.get_color(is_head),
+            self.get_bold(is_head),
+            self.character,
+            style::Reset.to_string()
+        );
+    }
+    
 }
 
 #[derive(Clone)]
@@ -49,7 +78,8 @@ impl DataString<'_> {
                 .map(|_| Datum {
                     character: settings.charset.get_random_char(),
                     color: (settings.get_tail_color)(),
-                    bold: settings.bold.get_bool(),
+                    head: (settings.get_head_color)(),
+                    bold: settings.bold,
                 })
                 .collect(),
             visible_length: get_random_number(height / 4..height / 2),
@@ -69,7 +99,8 @@ impl DataString<'_> {
             .map(|_| Datum {
                 character: self.settings.charset.get_random_char(),
                 color: (self.settings.get_tail_color)(),
-                bold: self.settings.bold.get_bool(),
+                head: (self.settings.get_head_color)(),
+                bold: self.settings.bold,
             })
             .collect();
         self.visible_length = get_random_number(self.matrix_height / 4..self.matrix_height / 2);
@@ -88,41 +119,31 @@ impl DataString<'_> {
     }
 
     fn draw_head<W: Write>(&self, stdout: &mut W) {
-        let bold = match self.settings.bold.get_optimistic_bool() {
-            true => style::Bold.to_string(),
-            false => style::NoBold.to_string(),
-        };
+        if 1 <= self.y_head && self.y_head <= self.matrix_height + 1 {
+            // head
+            if self.y_head <= self.matrix_height {
+                stdout.write(cursor::Goto( self.x * u16::from(self.settings.charset.get_width()), self.y_head).to_string().as_bytes());
+                self.data[(self.y_head - 1) as usize].draw(stdout, true);
+            }
 
-        write!(
-            stdout,
-            "{}{}{}{}{}",
-            cursor::Goto(self.x * u16::from(self.settings.charset.get_width()), self.y_head),
-            (self.settings.get_head_color)().fg_string(),
-            bold,
-            self.data[(self.y_head - 1) as usize].character,
-            style::Reset.to_string()
-        );
+            // tail
+            let neck = self.y_head - 1;
+            if 1 <= neck {
+                stdout.write( cursor::Goto(self.x * u16::from(self.settings.charset.get_width()), neck).to_string().as_bytes());
+                self.data[(neck - 1) as usize].draw(stdout, false);
+            }
+        }
     }
 
-    fn draw_tail<W: Write>(&self, stdout: &mut W) {
-        let neck = self.y_head - 1;
-        write!(
-            stdout,
-            "{}{}{}{}{}",
-            cursor::Goto(self.x * u16::from(self.settings.charset.get_width()), neck),
-            self.data[(neck - 1) as usize].color.fg_string(),
-            self.data[(neck - 1) as usize].get_bold(),
-            self.data[(neck - 1) as usize].character,
-            style::Reset.to_string()
-        );
-    }
-    
     fn remove_tail<W: Write>(&self, stdout: &mut W) {
         if let Some(y_tail) = self.get_y_tail() {
             write!(
                 stdout,
                 "{}{}{}",
-                cursor::Goto(self.x * u16::from(self.settings.charset.get_width()), y_tail - 1),
+                cursor::Goto(
+                    self.x * u16::from(self.settings.charset.get_width()),
+                    y_tail - 1
+                ),
                 color::Black.fg_str(),
                 ' '
             );
@@ -146,19 +167,7 @@ impl Drawable for DataString<'_> {
 
     fn draw<W: Write>(&self, stdout: &mut W) {
         // draw string
-        if 1 <= self.y_head && self.y_head <= self.matrix_height + 1 {
-            // head
-            if self.y_head <= self.matrix_height {
-                self.draw_head(stdout);
-            }
-
-            // tail
-            let neck = self.y_head - 1;
-            if 1 <= neck {
-                self.draw_tail(stdout);
-            }
-        }
-
+        self.draw_head(stdout);
         // erase tail
         self.remove_tail(stdout);
     }
