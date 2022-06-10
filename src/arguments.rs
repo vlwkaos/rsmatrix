@@ -2,10 +2,26 @@ use crate::libs::{
     charset::{self, Charset},
     utils::get_random_number,
 };
+use std::cell::RefCell;
 use clap::Parser;
 use rand::Rng;
 use std::ops::Range;
 use termion::color;
+
+const RAINBOW: [color::Rgb; 7] = [
+    color::Rgb(148, 0, 211),
+    color::Rgb(75, 0, 130),
+    color::Rgb(0, 0, 255),
+    color::Rgb(0, 255, 0),
+    color::Rgb(255, 255, 0),
+    color::Rgb(255, 127, 0),
+    color::Rgb(255, 0, 0),
+];
+thread_local! {
+    static RAINBOW_ITER: RefCell<usize> = RefCell::new(0);
+}
+
+static mut RAINBOW_MANUAL_ITER: u8 = 0;
 
 #[derive(Clone, Copy)]
 pub enum Trilean {
@@ -98,10 +114,12 @@ struct Arguments {
 }
 
 pub fn parse_cli_arguments() -> Settings {
+
     let arguments: Arguments = Arguments::parse();
     // curryied color func
     let get_tail_color = Box::new(move || get_color_from_string(arguments.tail.as_str()));
     let get_head_color = Box::new(move || get_color_from_string(arguments.head.as_str()));
+
     let charset = match arguments.charset.as_str() {
         "aascii" => Charset::AlphaNumSym,
         "katakana" => Charset::Katakana,
@@ -121,7 +139,7 @@ pub fn parse_cli_arguments() -> Settings {
         get_head_color,
         charset,
         bold,
-        frames: arguments.frames
+        frames: arguments.frames,
     }
 }
 
@@ -144,8 +162,17 @@ fn get_color_from_string(string: &str) -> color::Rgb {
         "magenta" => color::Rgb(255, 0, 255),
         "cyan" => color::Rgb(0, 255, 255),
         "random" => get_random_color(),
+        "rainbow" => get_next_rainbow_color(),
         string_tuple => string_tuple_to_rgb(string_tuple),
     }
+}
+
+fn get_next_rainbow_color() -> color::Rgb {
+    RAINBOW_ITER.with(|idx| {
+        let ret = RAINBOW[*idx.borrow() % 7];
+        *idx.borrow_mut() += 1;
+        ret
+    })
 }
 
 fn get_random_color() -> color::Rgb {
@@ -163,7 +190,7 @@ fn string_tuple_to_rgb(string_tuple: &str) -> color::Rgb {
     for i in string_tuple.split(',') {
         rgb_vec.push(
             i.parse::<u8>()
-                .expect("Please enter correct color: r,g,b or green."),
+                .expect("Incorrect color format entered. Try r,g,b or green"),
         );
     }
 
