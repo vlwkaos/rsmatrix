@@ -2,11 +2,14 @@
 
 <img width="900" alt="image" src="https://user-images.githubusercontent.com/44766242/173063572-8cc51cec-1c07-4d3f-add9-b1ccda24fd13.png">
 <img width="900" alt="image" src="https://user-images.githubusercontent.com/44766242/173187513-ad74d355-84c1-4005-ac32-1500286fce5b.png">
-![Screen Recording 2022-06-10 at 12 56 09 PM](https://user-images.githubusercontent.com/44766242/172987437-c2d6330a-4642-46c6-871f-1d7f79084eca.gif)
+
+![Screen Recording 2022-06-11 at 10 39 10 PM](https://user-images.githubusercontent.com/44766242/173190374-e3cedba0-6ac1-49c6-9a02-edec3735ca23.gif)
 
 🚧 Work in Progress
 
-My attempt at building [cmatrix](https://github.com/abishekvashok/cmatrix) clone using rust
+CLI application that mimics the iconic CG from "The Matrix".
+
+This is my attempt at building [cmatrix](https://github.com/abishekvashok/cmatrix) clone using rust
 
 ```sh
 USAGE:
@@ -28,7 +31,7 @@ OPTIONS:
             [default: ascii]
 
     -f, --frames <FRAMES>
-            Set update frequency (higher the faster)
+            Set update frequency (the higher, the faster)
 
             [default: 120]
 
@@ -41,6 +44,13 @@ OPTIONS:
 
         --help
             Print help information
+
+    -l, --brightness <BRIGHTNESS>
+            Set brightness effect for tail
+
+            OPTIONS: none, random, gradient
+
+            [default: random]
 
     -t, --tail <TAIL>
             Set color of tail characters
