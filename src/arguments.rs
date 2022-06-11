@@ -2,7 +2,7 @@ use crate::libs::{
     charset::{self, Charset},
     utils::get_random_number,
 };
-use std::cell::RefCell;
+use std::{cell::RefCell, cmp::Ord};
 use clap::Parser;
 use rand::Rng;
 use std::ops::Range;
@@ -18,7 +18,7 @@ const RAINBOW: [color::Rgb; 7] = [
     color::Rgb(255, 0, 0),
 ];
 thread_local! {
-    static RAINBOW_ITER: RefCell<usize> = RefCell::new(0);
+    static GLOBAL_ITER_IDX: RefCell<usize> = RefCell::new(0);
 }
 
 static mut RAINBOW_MANUAL_ITER: u8 = 0;
@@ -108,17 +108,26 @@ struct Arguments {
     #[clap(short, long, default_value_t = String::from("random"))]
     pub bold: String,
 
-    /// Set update frequency (higher the faster)
+    /// Set update frequency (the higher, the faster)
     #[clap(short, long, default_value_t = 120)]
     pub frames: u16,
+
+    /// Set brightness effect for tail
+    /// 
+    /// OPTIONS:
+    ///     none,
+    ///     random,
+    ///     gradient
+    #[clap(short='l', long, default_value_t = String::from("random"))]
+    pub brightness: String,
 }
 
 pub fn parse_cli_arguments() -> Settings {
 
     let arguments: Arguments = Arguments::parse();
     // curryied color func
-    let get_tail_color = Box::new(move || get_color_from_string(arguments.tail.as_str()));
-    let get_head_color = Box::new(move || get_color_from_string(arguments.head.as_str()));
+    let get_tail_color = Box::new(move || get_color_from_string(arguments.tail.as_str(), arguments.brightness.as_str()));
+    let get_head_color = Box::new(move || get_color_from_string(arguments.head.as_str(), "none"));
 
     let charset = match arguments.charset.as_str() {
         "aascii" => Charset::AlphaNumSym,
@@ -152,8 +161,8 @@ pub struct Settings {
     pub frames: u16,
 }
 
-fn get_color_from_string(string: &str) -> color::Rgb {
-    match string {
+fn get_color_from_string(color: &str, brightness: &str) -> color::Rgb {
+    let ret = match color {
         "red" => color::Rgb(255, 0, 0),
         "green" => color::Rgb(0, 255, 0),
         "blue" => color::Rgb(0, 0, 255),
@@ -164,11 +173,40 @@ fn get_color_from_string(string: &str) -> color::Rgb {
         "random" => get_random_color(),
         "rainbow" => get_next_rainbow_color(),
         string_tuple => string_tuple_to_rgb(string_tuple),
+    };
+    apply_brightness(ret, brightness)
+}
+
+fn get_lower_brightness(color: color::Rgb, factor: u8) -> color::Rgb {
+    let color::Rgb(r,g,b) = color;
+    let factor = factor + 1;
+    let r = (r / factor).clamp(0, 255) as u8;
+    let g = (g / factor).clamp(0, 255) as u8;
+    let b = (b / factor).clamp(0, 255) as u8;
+    color::Rgb(r,g,b)
+}
+
+fn apply_brightness(color: color::Rgb, brightness: &str) -> color::Rgb {
+    match brightness {
+        "none" => color,
+        "random" => {
+            get_lower_brightness(color, get_random_number(0..5) as u8)
+        },
+        "gradient" => {
+            GLOBAL_ITER_IDX.with(|idx| {
+                let i = *idx.borrow();
+                let factor = if i > 10 { 20 - i } else {i};
+                let ret = get_lower_brightness(color, factor as u8);
+                *idx.borrow_mut() = (i+1)%20;
+                ret 
+            })
+        },
+        _ => color,
     }
 }
 
 fn get_next_rainbow_color() -> color::Rgb {
-    RAINBOW_ITER.with(|idx| {
+    GLOBAL_ITER_IDX.with(|idx| {
         let ret = RAINBOW[*idx.borrow() % 7];
         *idx.borrow_mut() += 1;
         ret

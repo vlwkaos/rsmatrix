@@ -1,7 +1,8 @@
 # rsmatrix
 
-![Screen Recording 2022-06-10 at 12 56 09 PM](https://user-images.githubusercontent.com/44766242/172987437-c2d6330a-4642-46c6-871f-1d7f79084eca.gif)
 <img width="900" alt="image" src="https://user-images.githubusercontent.com/44766242/173063572-8cc51cec-1c07-4d3f-add9-b1ccda24fd13.png">
+<img width="900" alt="image" src="https://user-images.githubusercontent.com/44766242/173187513-ad74d355-84c1-4005-ac32-1500286fce5b.png">
+![Screen Recording 2022-06-10 at 12 56 09 PM](https://user-images.githubusercontent.com/44766242/172987437-c2d6330a-4642-46c6-871f-1d7f79084eca.gif)
 
 🚧 Work in Progress
 
